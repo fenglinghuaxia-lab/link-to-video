@@ -1,0 +1,208 @@
+{
+  "moods": {
+    "upbeat": "轻快积极 —— 教程、干货、开场抓人",
+    "calm": "沉静思考 —— 深度分析、读书、长文解读",
+    "focus": "专注商业 —— 数据、科技、品牌、企业向",
+    "warm": "温暖叙事 —— 故事、人物、情感、收尾"
+  },
+  "tracks": [
+    {
+      "file": "upbeat/Carefree.mp3",
+      "title": "Carefree",
+      "mood": "upbeat",
+      "feel": "Bouncy, Bright, Calming, Uplifting",
+      "instruments": "Ukulele, Guitar, Marimba, Glock, Percussion",
+      "duration": 90,
+      "credit": "\"Carefree\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Wallpaper.mp3",
+      "title": "Wallpaper",
+      "mood": "upbeat",
+      "feel": "Bouncy, Bright, Calming, Uplifting",
+      "instruments": "Synths, Kit, Guitar",
+      "duration": 90,
+      "credit": "\"Wallpaper\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Super Friendly.mp3",
+      "title": "Super Friendly",
+      "mood": "upbeat",
+      "feel": "Bouncy, Bright, Uplifting",
+      "instruments": "Electric Piano, Choir, Synths, Kit",
+      "duration": 90,
+      "credit": "\"Super Friendly\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Sunshine.mp3",
+      "title": "Sunshine",
+      "mood": "upbeat",
+      "feel": "Bright, Calming, Relaxed",
+      "instruments": "Guitar, Bass, Kit, Piano",
+      "duration": 90,
+      "credit": "\"Sunshine\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Electrodoodle.mp3",
+      "title": "Electrodoodle",
+      "mood": "upbeat",
+      "feel": "Bouncy, Uplifting",
+      "instruments": "Synths, Kit",
+      "duration": 90,
+      "credit": "\"Electrodoodle\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Carpe Diem.mp3",
+      "title": "Carpe Diem",
+      "mood": "upbeat",
+      "feel": "Bouncy, Bright, Uplifting",
+      "instruments": "Clarinet, Ukulele, Flute, Guitar, Xylophone, Percussion, Bass",
+      "duration": 90,
+      "credit": "\"Carpe Diem\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Nowhere Land.mp3",
+      "title": "Nowhere Land",
+      "mood": "upbeat",
+      "feel": "Bright, Uplifting",
+      "instruments": "Synths, Percussion",
+      "duration": 90,
+      "credit": "\"Nowhere Land\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "upbeat/Nothing Broken.mp3",
+      "title": "Nothing Broken",
+      "mood": "upbeat",
+      "feel": "Bouncy, Bright, Uplifting",
+      "instruments": "Clarinets, Flute, Harpsichord, Guitar, Organ, Kit",
+      "duration": 90,
+      "credit": "\"Nothing Broken\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "calm/Easy Lemon.mp3",
+      "title": "Easy Lemon",
+      "mood": "calm",
+      "feel": "Bright, Calming, Relaxed",
+      "instruments": "Guitar, Bass, Kit, Celesta, Marimba",
+      "duration": 90,
+      "credit": "\"Easy Lemon\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "calm/Ambiment.mp3",
+      "title": "Ambiment",
+      "mood": "calm",
+      "feel": "Calming, Mystical, Relaxed",
+      "instruments": "Piano, Synths",
+      "duration": 90,
+      "credit": "\"Ambiment\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "calm/Tranquility.mp3",
+      "title": "Tranquility",
+      "mood": "calm",
+      "feel": "Calming, Relaxed",
+      "instruments": "Synths",
+      "duration": 90,
+      "credit": "\"Tranquility\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "calm/Light Awash.mp3",
+      "title": "Light Awash",
+      "mood": "calm",
+      "feel": "Bright, Uplifting, Relaxed",
+      "instruments": "",
+      "duration": 90,
+      "credit": "\"Light Awash\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "calm/Northern Glade.mp3",
+      "title": "Northern Glade",
+      "mood": "calm",
+      "feel": "Bright, Calming, Relaxed",
+      "instruments": "Synths",
+      "duration": 90,
+      "credit": "\"Northern Glade\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "focus/Cipher.mp3",
+      "title": "Cipher",
+      "mood": "focus",
+      "feel": "Bright, Grooving, Uplifting",
+      "instruments": "Synths, EP, Percussion, Strings",
+      "duration": 90,
+      "credit": "\"Cipher\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "focus/Inspired.mp3",
+      "title": "Inspired",
+      "mood": "focus",
+      "feel": "Bright, Relaxed, Calming, Uplifting",
+      "instruments": "Guitar, Synths, Percussion",
+      "duration": 90,
+      "credit": "\"Inspired\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "focus/Motivator.mp3",
+      "title": "Motivator",
+      "mood": "focus",
+      "feel": "Bouncy, Bright, Driving, Uplifting",
+      "instruments": "Bass, Kit, Synths",
+      "duration": 90,
+      "credit": "\"Motivator\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "focus/Tech Live.mp3",
+      "title": "Tech Live",
+      "mood": "focus",
+      "feel": "Bouncy, Grooving",
+      "instruments": "Synths, Percussion",
+      "duration": 90,
+      "credit": "\"Tech Live\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "focus/Presenterator.mp3",
+      "title": "Presenterator",
+      "mood": "focus",
+      "feel": "Bouncy, Bright, Driving",
+      "instruments": "Synths, Kit",
+      "duration": 90,
+      "credit": "\"Presenterator\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "warm/Wholesome.mp3",
+      "title": "Wholesome",
+      "mood": "warm",
+      "feel": "Calm, Grooving, Relaxed",
+      "instruments": "Cello, Viola, Marimba, Drums",
+      "duration": 90,
+      "credit": "\"Wholesome\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "warm/Past Sadness.mp3",
+      "title": "Past Sadness",
+      "mood": "warm",
+      "feel": "Calm, Grooving, Relaxed",
+      "instruments": "EP, Bass, Percussion",
+      "duration": 90,
+      "credit": "\"Past Sadness\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "warm/Funkorama.mp3",
+      "title": "Funkorama",
+      "mood": "warm",
+      "feel": "Grooving, Uplifting",
+      "instruments": "Guitar, Bass, Kit, Organ, Synth",
+      "duration": 90,
+      "credit": "\"Funkorama\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    },
+    {
+      "file": "warm/Adding the Sun.mp3",
+      "title": "Adding the Sun",
+      "mood": "warm",
+      "feel": "Calm, Grooving, Uplifting",
+      "instruments": "Choir, Percussion, Bass",
+      "duration": 90,
+      "credit": "\"Adding the Sun\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0"
+    }
+  ]
+}
