@@ -24,11 +24,35 @@ MIN_GAP = 80        # 可下刀的最小空白段高度
 MAX_SNAP = 500      # 切口最多偏离目标位置多少像素去找空白段
 MIN_SLICE = 500     # 相邻切口最小间距
 
+# 以下是"切不开"时的兜底参数（2026-09-04 修）：
+# 目标位置附近既没有空白段、又正落在一张整宽大图里时，
+# 旧版直接按目标位置下刀，会把图劈成两半，且 clean_slices 无空白可裁，
+# 表现为相邻两片的底/顶 6px 全是墨（验收脚本能抓到）。
+MAX_SNAP_FAR = 1500   # 第一层兜底：放宽到这个范围再找空白段
+BLOCK_MIN = 150       # 连续整宽墨量 >= 此高度 → 视为不可分割块（大图/大色块）
+BLOCK_W = 0.8         # "整宽"判定阈值（占行宽比例）
+
 
 def analyze(a):
     bg = int(np.median(np.concatenate([a[0], a[-1]])))
     ink = (np.abs(a - bg) > INK_THR).sum(axis=1)
     return ink, bg
+
+
+def solid_blocks(ink, w, min_len):
+    """整宽连续墨量块（大图/大色块），返回 [(s,e), ...]"""
+    solid = ink >= w * BLOCK_W
+    runs, s = [], None
+    for y, b in enumerate(solid):
+        if b and s is None:
+            s = y
+        elif not b and s is not None:
+            if y - s >= min_len:
+                runs.append((s, y - 1))
+            s = None
+    if s is not None and len(solid) - s >= min_len:
+        runs.append((s, len(solid) - 1))
+    return runs
 
 
 def blank_runs(ink, min_len):
@@ -74,7 +98,11 @@ def main():
     print(f"背景={bg}  内容行总数={total}")
 
     runs = blank_runs(ink, MIN_GAP)
+    blocks = solid_blocks(ink, w, BLOCK_MIN)
     print(f"可用空白段 {len(runs)} 个（>={MIN_GAP}px）")
+    if blocks:
+        print(f"不可分割块 {len(blocks)} 个（整宽连续 >={BLOCK_MIN}px）: "
+              + ", ".join(f"{s}-{e}" for s, e in blocks))
 
     # 用"压缩坐标"做等分：
     # 真正决定幻灯片长短的是视觉跨度，不是墨量行数。
@@ -105,7 +133,31 @@ def main():
             d = abs(c - y_t)
             if d <= MAX_SNAP and (best_d is None or d < best_d):
                 best, best_d = c, d
-        y = best if best is not None else y_t
+        if best is not None:
+            y = best
+        else:
+            y = y_t
+            # 兜底一：放宽窗口再找一次。宁可页面长短不匀，也别把大图劈开
+            far, far_d = None, None
+            for (s, e) in runs:
+                c = (s + e) // 2
+                d = abs(c - y_t)
+                if d <= MAX_SNAP_FAR and (far_d is None or d < far_d):
+                    far, far_d = c, d
+            if far is not None:
+                y = far
+                print(f"  [切口{i}] 目标 {y_t} 的 {MAX_SNAP}px 内无空白段，"
+                      f"放宽到 {far}（偏离 {far_d}px，此片会长短不匀）")
+            else:
+                # 兜底二：确认是否落在不可分割块内，是则推到块的边缘
+                for (bs, be) in blocks:
+                    if bs < y_t < be:
+                        y = bs if (y_t - bs) < (be - y_t) else be
+                        print(f"  [切口{i}] 目标 {y_t} 落在不可分割块 {bs}-{be} 内，"
+                              f"推到边缘 {y}")
+                        break
+        if ink[y] > w * 0.5:
+            print(f"  [切口{i}] 警告：{y} 仍是整宽墨量行，该片边缘可能有残留")
 
         # 保证间距
         y = max(y, cuts[-1] + MIN_SLICE)

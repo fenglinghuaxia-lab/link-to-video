@@ -46,6 +46,34 @@ https://mp.weixin.qq.com/s/xxx   ──►   final.mp4 (27s, 1080×1920)
 
 也可以只改一层：`--preset navy --dash-color '#2E4A6B'`，或直接给两个十六进制色值。
 
+### 11 种封面配色
+
+封面配色**与边框预设同名同色相** —— 选 `--preset navy` 边框，就配 `--theme navy` 封面，
+封面的引号、accent 短线、`@署名` 直接取该边框的外层色，整条视频一套视觉。
+
+<p>
+  <img src="assets/examples/cover_themes.png" width="100%" alt="11 种封面配色对比">
+</p>
+
+```bash
+# 看全部配色
+python scripts/make_final.py --workdir . --out x.mp4 --list-themes
+
+# 重新生成上面这张对比图
+python scripts/make_cover_preview.py
+
+# 同一篇一次出多个配色封面挑色
+for t in deepblue navy mint sand; do
+  python scripts/make_final.py --workdir $WORK --slices-dir capture_v2 \
+      --out $WORK/final.mp4 --cover-only --theme $t --cover-out "$WORK/cover_$t.png"
+done
+```
+
+封面背景没有直接用强调色 —— 边框色是给白底卡片用的浅色，拿来当封面底压不住 88px 大字。
+每套 theme 另有按该色相调深的渐变；传了背景图（首张切片）时会叠高斯模糊 + 压暗。
+
+只想换强调色、保留背景渐变：`--theme navy --cover-accent '#F59E0B'`。
+
 ---
 
 ## 快速开始
@@ -67,10 +95,10 @@ $PY $SKILL/scripts/clean_slices.py --base $WORK --input-dir capture_v2
 # 4 卡片边框（配色由用户选）
 $PY $SKILL/scripts/add_border.py --workdir $WORK --preset navy
 
-# 5 合成（封面标题自动读 meta.json）
+# 5 合成（封面标题自动读 meta.json；--theme 用和第 4 步 --preset 相同的名字）
 cp $WORK/capture_v1/meta.json $WORK/capture_v2/meta.json
 $PY $SKILL/scripts/make_final.py --workdir $WORK --slices-dir capture_v2 \
-    --out $WORK/final.mp4 --theme warm --bgm focus
+    --out $WORK/final.mp4 --theme navy --bgm focus
 ```
 
 `--bgm` 支持 `random` / 情绪包名(`upbeat` `calm` `focus` `warm`) / 文件路径 / `none`。
@@ -138,7 +166,8 @@ link-to-video/
 │   ├── reslice.py            按视觉跨度重新切片
 │   ├── clean_slices.py       智能裁剪空白/UI/孤立图标
 │   ├── add_border.py         卡片式边框（11 种配色预设）
-│   ├── make_final.py         封面生成 + ffmpeg 合成
+│   ├── make_final.py         封面生成（11 种配色）+ ffmpeg 合成
+│   ├── make_cover_preview.py 生成 11 种封面配色对比图
 │   ├── fetch_bgm.py          BGM 曲库管理
 │   ├── make_preview.py       生成本文件用的预览图
 │   └── make_video.py         旧版一步式合成

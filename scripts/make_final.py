@@ -25,11 +25,52 @@ FONT_BOLD = r"C:\Windows\Fonts\msyhbd.ttc"
 FONT_REG = r"C:\Windows\Fonts\msyh.ttc"
 
 # 封面主题
+# 命名与 add_border.py 的 11 种边框预设对齐：accent 直接取该预设的外层色，
+# 保证「边框配色 = 封面配色」视觉统一。top/bottom 是按该色相调深的背景渐变
+# （封面要压得住 88px 大字，底色必须深，不能直接用边框那种浅色）。
 THEMES = {
-    "warm": {"top": (41, 25, 18), "bottom": (94, 55, 32), "accent": (245, 158, 11), "text": (253, 246, 237)},
-    "dark": {"top": (12, 18, 32), "bottom": (28, 39, 62), "accent": (96, 165, 250), "text": (241, 245, 249)},
-    "light": {"top": (248, 250, 252), "bottom": (224, 231, 241), "accent": (37, 99, 235), "text": (15, 23, 42)},
+    "deepblue": {"top": (26, 43, 74), "bottom": (13, 24, 45), "accent": (127, 168, 212), "text": (240, 246, 252)},
+    "navy":     {"top": (18, 34, 56), "bottom": (9, 19, 33),  "accent": (91, 127, 166),  "text": (236, 242, 249)},
+    "mint":     {"top": (20, 56, 48), "bottom": (10, 30, 26), "accent": (168, 201, 188), "text": (238, 248, 244)},
+    "warm":     {"top": (41, 25, 18), "bottom": (94, 55, 32), "accent": (245, 158, 11),  "text": (253, 246, 237)},
+    "lavender": {"top": (42, 32, 62), "bottom": (22, 16, 34), "accent": (176, 160, 204), "text": (244, 241, 250)},
+    "gold":     {"top": (48, 38, 20), "bottom": (26, 20, 10), "accent": (201, 169, 97),  "text": (250, 245, 232)},
+    "crimson":  {"top": (62, 26, 30), "bottom": (33, 13, 16), "accent": (192, 128, 128), "text": (250, 240, 240)},
+    "teal":     {"top": (18, 52, 50), "bottom": (9, 28, 27),  "accent": (127, 168, 164), "text": (236, 248, 247)},
+    "slate":    {"top": (38, 42, 48), "bottom": (20, 23, 28), "accent": (154, 164, 176), "text": (241, 244, 248)},
+    "sand":     {"top": (54, 46, 34), "bottom": (30, 25, 18), "accent": (191, 170, 138), "text": (250, 246, 238)},
+    "plain":    {"top": (32, 32, 34), "bottom": (16, 16, 18), "accent": (221, 221, 221), "text": (248, 248, 248)},
+    # 旧版兼容（新内容建议用上面 11 个，能和边框配套）
+    "dark":     {"top": (12, 18, 32), "bottom": (28, 39, 62), "accent": (96, 165, 250), "text": (241, 245, 249)},
+    "light":    {"top": (248, 250, 252), "bottom": (224, 231, 241), "accent": (37, 99, 235), "text": (15, 23, 42)},
 }
+
+# 与 add_border.py 预设一一对应，选了哪个边框就用同名封面
+THEME_DESC = {
+    "deepblue": "深蓝 · 专业商务（金融/科技）",
+    "navy":     "藏青 · 沉稳权威（财经分析/研报）",
+    "mint":     "薄荷绿 · 清新自然（教育/读书/生活）",
+    "warm":     "暖棕 · 温暖文艺（随笔/故事/情感）",
+    "lavender": "淡紫 · 优雅高级（艺术/设计/女性向）",
+    "gold":     "香槟金 · 高端质感（品牌/奢侈品/年终）",
+    "crimson":  "朱红 · 热烈醒目（行情/节日/促销）",
+    "teal":     "青碧 · 冷静科技（医疗/制造/数据）",
+    "slate":    "石墨灰 · 中性理性（资讯/干货/通用）",
+    "sand":     "米杏 · 柔和耐看（长文/连载/日更）",
+    "plain":    "极简灰 · 无风格中性",
+    "dark":     "（旧版）深蓝黑",
+    "light":    "（旧版）浅色底",
+}
+
+
+def hex2rgb(s):
+    """'#F59E0B' / 'F59E0B' / '#F90' -> (245, 158, 11)"""
+    s = str(s).strip().lstrip("#")
+    if len(s) == 3:
+        s = "".join(c * 2 for c in s)
+    if len(s) != 6:
+        raise ValueError(f"颜色格式不对：{s}（应为 #RRGGBB）")
+    return tuple(int(s[i:i + 2], 16) for i in (0, 2, 4))
 
 
 def wrap_text(draw, text, font, max_w):
@@ -47,9 +88,15 @@ def wrap_text(draw, text, font, max_w):
     return lines
 
 
-def make_cover(out_path, title, subtitle, author, theme, bg=None):
-    """暖调大字封面：背景模糊压暗 + 引号装饰 + 大标题"""
-    th = THEMES.get(theme, THEMES["warm"])
+def make_cover(out_path, title, subtitle, author, theme, bg=None, accent=None):
+    """大字封面：背景模糊压暗 + 引号装饰 + 大标题
+
+    accent: 单独指定强调色（引号/accent 短线/@作者），十六进制字符串或 (r,g,b)。
+            给了就覆盖主题里的 accent，背景渐变仍按主题走。
+    """
+    th = dict(THEMES.get(theme, THEMES["warm"]))
+    if accent:
+        th["accent"] = hex2rgb(accent) if isinstance(accent, str) else tuple(accent)
     img = Image.new("RGB", (W, H), th["top"])
 
     # 背景：首图高斯模糊压暗
@@ -216,11 +263,29 @@ def main():
     ap.add_argument("--slices-dir", default=None, help="截图目录名，默认自动查找 capture_*")
     ap.add_argument("--subtitle", default="")
     ap.add_argument("--author", default="期权Z叔")
-    ap.add_argument("--theme", default="warm", choices=list(THEMES.keys()))
+    ap.add_argument("--theme", default="warm", choices=list(THEMES.keys()),
+                    help="封面配色，与 add_border.py 的边框预设同名（选了哪个边框就用哪个）")
+    ap.add_argument("--cover-accent", default=None,
+                    help="单独指定封面强调色，如 '#F59E0B'（只改引号/短线/署名，背景不变）")
+    ap.add_argument("--list-themes", action="store_true", help="列出所有封面配色后退出")
     ap.add_argument("--bgm", default="random",
                     help="BGM 选择：文件路径 | random(全库随机) | 情绪包名(upbeat/calm/focus/warm) | none(无音乐)")
     ap.add_argument("--reuse-cover", default=None, help="复用已有封面文件（不自动生成）")
+    ap.add_argument("--cover-only", action="store_true",
+                    help="只生成封面 PNG，不合成视频（做演示物料/封面单独复用时用）")
+    ap.add_argument("--cover-out", default=None,
+                    help="封面输出路径，默认 <workdir>/cover.png（配合 --cover-only 可一次出多个配色对比）")
     args = ap.parse_args()
+
+    if args.list_themes:
+        print("封面配色（与 add_border.py 的边框预设同名，建议配套使用）：\n")
+        for k in THEMES:
+            r, g, b = THEMES[k]["accent"]
+            print(f"  {k:<10} accent #{r:02X}{g:02X}{b:02X}   {THEME_DESC.get(k, '')}")
+        print("\n用法：")
+        print("  --theme navy                              换整套封面配色")
+        print("  --theme navy --cover-accent '#F59E0B'     只换强调色，背景不变")
+        return
 
     workdir = Path(args.workdir)
     args.bgm = resolve_bgm(args.bgm)
@@ -248,12 +313,18 @@ def main():
         cover = Path(args.reuse_cover)
         print(f"复用封面: {cover}")
     else:
-        cover = workdir / "cover.png"
+        cover = Path(args.cover_out) if args.cover_out else workdir / "cover.png"
         # 背景图取第一张切片
         bg = None
         if slices_dir and (slices_dir / "slice_1.png").exists():
             bg = slices_dir / "slice_1.png"
-        make_cover(cover, title, args.subtitle, args.author, args.theme, bg)
+        make_cover(cover, title, args.subtitle, args.author, args.theme, bg,
+                   accent=args.cover_accent)
+
+    if args.cover_only:
+        print(f"\n✅ 封面已生成（--cover-only，不合成视频）: {cover}")
+        print(f"   规格: {W}x{H}  主题: {args.theme}")
+        return
 
     # 3. 内页
     # 按 screenshots/ 的实际数量截断，避免 video_frames/ 里的旧残留被误用
@@ -269,11 +340,13 @@ def main():
         frames = frames[:n_screens]
     print(f"内页: {len(frames)} 张")
 
-    # 4. 生成视频
-    ok = build_video(str(cover), frames, Path(args.out), Path(args.bgm))
+    # 4. 生成视频（--bgm none 时 resolve_bgm 返回 None，不能再包 Path）
+    ok = build_video(str(cover), frames, Path(args.out),
+                     Path(args.bgm) if args.bgm else None)
     if ok:
         print(f"\n✅ 视频已生成: {args.out}")
-        print(f"   规格: {W}x{H} 30fps 静态轮播 + BGM")
+        print(f"   规格: {W}x{H} 30fps 静态轮播"
+              + (" + BGM" if args.bgm else "（无 BGM）"))
 
 
 if __name__ == "__main__":

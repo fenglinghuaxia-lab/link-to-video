@@ -43,6 +43,10 @@ plain      #FFFFFF   #DDDDDD   无框 · 极简白
 - BGM 情绪包：upbeat / calm / focus / warm / random / none
 - 切片数：默认 5，长文 7（跑两版比一下更稳，见后文）
 
+**封面配色不用单独问** —— 默认跟边框同名（选 `navy` 边框就配 `--theme navy` 封面），
+色相一脉相承，视觉才统一。用户想挑的话，把
+`assets/examples/cover_themes.png`（11 套封面配色对比图）用 present_files 给他看。
+
 用户答完再进入下面的流水线。
 
 ---
@@ -53,7 +57,9 @@ plain      #FFFFFF   #DDDDDD   无框 · 极简白
 - `scripts/reslice.py` — **按视觉跨度重新切片**（推荐，替代 capture 的等高分法）
 - `scripts/clean_slices.py` — 智能裁剪空白/UI/孤立图标 → `screenshots/`（小红书用）
 - `scripts/add_border.py` — 卡片式边框 → `video_frames/`（视频用）
-- `scripts/make_final.py` — 封面（标题自动取 meta.json）+ ffmpeg 合成
+- `scripts/make_final.py` — 封面（标题自动取 meta.json）+ ffmpeg 合成；`--cover-only` 只出封面不出视频
+- `scripts/make_cover_preview.py` — 生成 11 套封面配色的对比图（让用户挑色用）
+- `scripts/contact_sheet.py` — 封面+画框切片拼成单张总览图（演示/给客户过方案用）
 - `scripts/fetch_bgm.py` — BGM 曲库管理（搜索 / 下载 / 截取 / 登记）
 - `scripts/make_video.py` — 旧版一步式合成（简单场景可用）
 - `assets/bgm/` — BGM 曲库（按情绪分 4 个子目录，清单见 `manifest.json`）
@@ -82,20 +88,47 @@ $PY $SKILL/scripts/reslice.py --base $WORK --input-dir capture_v1 \
 # 3. 裁剪空白与垃圾元素 -> screenshots/slide_*.png（小红书用）+ video_frames/frame_*.png
 $PY $SKILL/scripts/clean_slices.py --base $WORK --input-dir capture_v2
 
-# 4. 卡片边框（颜色按用户选择，见下方预设）
-$PY $SKILL/scripts/add_border.py --workdir $WORK \
-    --bg-color "#7FA8D4" --dash-color "#5A82B0"
+# 4. 卡片边框（--preset 见下方 11 个；也可用 --bg-color/--dash-color 单独覆盖某层）
+$PY $SKILL/scripts/add_border.py --workdir $WORK --preset deepblue
 
 # 5. 合成（封面标题自动从 capture_v2/meta.json 读取，需先 cp meta.json 过去）
+#    封面 --theme 用与第 4 步 --preset 相同的名字，封面和边框配色才配套
 cp $WORK/capture_v1/meta.json $WORK/capture_v2/meta.json
 $PY $SKILL/scripts/make_final.py --workdir $WORK --slices-dir capture_v2 \
-    --out $WORK/final.mp4 --theme warm
+    --out $WORK/final.mp4 --theme deepblue --bgm focus
 
 # 产物: $WORK/final.mp4 (1080x1920, 30fps) + cover.png + screenshots/slide_*.png
 ```
 
 > **截图先给用户确认再生成视频**——用户明确要求过这一步（省积分）。
 > 第 3 步跑完就展示 `screenshots/`，确认后再跑 4、5。
+
+## 演示物料模式（不出视频）
+
+用户不一定每次都要 MP4 —— **封面 PNG + 画框切片 PNG + 总览图**本身就是交付物
+（拿去 PPT 演示、发小红书图文、给客户过方案）。只要静态物料时，第 5 步替换成：
+
+```bash
+# 封面：--cover-only 只出 cover.png，不跑 ffmpeg 不合成
+$PY $SKILL/scripts/make_final.py --workdir $WORK --slices-dir capture_n7b \
+    --out $WORK/final.mp4 --cover-only --theme navy --author "期权Z叔"
+
+# 同一篇一次出多个配色封面挑色（--cover-out 防止互相覆盖）
+for t in deepblue navy mint sand; do
+  $PY $SKILL/scripts/make_final.py --workdir $WORK --slices-dir capture_n7b \
+      --out $WORK/final.mp4 --cover-only --theme $t --cover-out "$WORK/cover_$t.png"
+done
+
+# 画框切片：add_border 正常跑（video_frames/frame_*.png 就是 1080x1920 带框图）
+$PY $SKILL/scripts/add_border.py --workdir $WORK --preset navy
+
+# 总览图：封面 + 全部画框切片拼成单张 PNG，一张图看全整个方案
+$PY $SKILL/scripts/contact_sheet.py --workdir $WORK --cols 4 --height 540
+```
+
+`contact_sheet.py` 参数：`--cols`（列数，默认5）、`--height`（缩略图高，默认560）、
+`--no-cover`（不拼封面）、`--out`（默认 `contact_sheet.png`）。
+非本人文章做演示时记得 `--author ""`，别把"期权Z叔"印在别人文章的封面上。
 
 ## 知乎登录（首次必做）
 
@@ -116,10 +149,63 @@ $PY $SKILL/scripts/capture.py login --out $WORK --login
 | --slide-dur | 3.5s | 每片展示时长（静态轮播模式） |
 | --cover-dur | 2.5s | 封面停留时长 |
 | --bgm | random | 见下方「BGM 选择」，支持情绪包 / 随机 / 指定文件 / none |
-| --cover-title | 文章标题 | 封面主标题（可让用户改写爆款标题） |
-| --cover-subtitle | 无 | 封面副标题 |
-| --theme | warm | dark / light / warm 三套封面配色 |
+| --subtitle | 空 | 封面副标题 |
+| --author | 期权Z叔 | 封面底部署名 |
+| **--theme** | **warm** | **封面配色（11 套，与边框 preset 同名；见下方「封面配色」）** |
+| --cover-accent | 空 | 只改封面强调色（引号 / accent 短线 / 署名），如 `'#F59E0B'`，背景不变 |
+| --cover-out | `<WORK>/cover.png` | 封面输出路径；配 `--cover-only` 可一次出多个配色对比 |
 | **--preset** | **deepblue** | **内页卡片边框配色预设（见下方 11 个）** |
+
+> **封面主标题没有命令行参数** —— `make_final.py` 只读 `<slices-dir>/meta.json` 里的 `title`。
+> 要改写爆款标题，先改 meta.json 再合成（原 title 常带 `" - 知乎"` 后缀，记得一并去掉）：
+> ```python
+> import json, io
+> p = "<WORK>/capture_n5/meta.json"
+> m = json.load(io.open(p, encoding="utf-8"))
+> m["title"] = "改写后的标题"
+> json.dump(m, io.open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+> ```
+
+### 封面配色（`--theme`）
+
+**与 `--preset` 边框预设同名同色相** —— 选了哪个边框就用哪个 theme。
+封面的引号、accent 短线、`@署名` 直接取该边框的外层色，整条视频一套视觉。
+
+| theme | 强调色 | 中文 |
+|---|---|---|
+| `deepblue` | `#7FA8D4` | 深蓝 · 专业商务（金融/科技） |
+| `navy` | `#5B7FA6` | 藏青 · 沉稳权威（财经分析/研报） |
+| `mint` | `#A8C9BC` | 薄荷绿 · 清新自然（教育/读书/生活） |
+| `warm` | `#F59E0B` | 暖棕 · 温暖文艺（随笔/故事/情感） |
+| `lavender` | `#B0A0CC` | 淡紫 · 优雅高级（艺术/设计/女性向） |
+| `gold` | `#C9A961` | 香槟金 · 高端质感（品牌/奢侈品/年终） |
+| `crimson` | `#C08080` | 朱红 · 热烈醒目（行情/节日/促销） |
+| `teal` | `#7FA8A4` | 青碧 · 冷静科技（医疗/制造/数据） |
+| `slate` | `#9AA4B0` | 石墨灰 · 中性理性（资讯/干货/通用） |
+| `sand` | `#BFAA8A` | 米杏 · 柔和耐看（长文/连载/日更） |
+| `plain` | `#DDDDDD` | 极简灰 · 无风格中性 |
+
+旧版 `dark` / `light` 保留可用（向后兼容），但**不会和边框配套**，新内容优先用上面 11 个。
+
+> 强调色取的是该预设里**在白底上仍可辨识**的那个色：`deepblue` / `navy` 直接用外层色；
+> 其余预设外层偏浅（如 `mint` 的 `#D8EDE5`），在深色封面上会糊掉，改用虚线色。
+> 改配色时注意保持这条规则。
+
+> 背景不是直接用强调色：边框色是给白底卡片用的浅色，拿来当封面底会压不住 88px 大字。
+> 每套 theme 另有按该色相调深的 top/bottom 渐变；传了背景图（首张切片）时会叠
+> 高斯模糊 + 压暗。
+
+```bash
+# 看全部可用配色
+$PY $SKILL/scripts/make_final.py --workdir . --out x.mp4 --list-themes
+
+# 重新生成「11 套封面配色对比图」→ assets/examples/cover_themes.png
+$PY $SKILL/scripts/make_cover_preview.py
+
+# 只换强调色（引号/短线/署名），背景渐变不变
+$PY $SKILL/scripts/make_final.py --workdir $WORK --slices-dir capture_v2 \
+    --out $WORK/final.mp4 --theme navy --cover-accent '#F59E0B'
+```
 
 ### BGM 选择（`--bgm`）
 
@@ -187,7 +273,13 @@ $PY $SKILL/scripts/add_border.py --workdir $WORK --preset navy --dash-color '#2E
    换 `--theme` / `--bgm` / `--preset` 就能快速出变体，**不用重跑截图**
 4. 选了 BGM 后**必须提醒用户把署名贴进视频简介**（脚本会打印署名文本）
 5. 用户只做**自己写的文章**（版权安全）
-6. 支持平台：知乎专栏/回答、微信公众号文章（自动识别选择器），其他平台用 `--selector` 手动指定
+6. **接到链接先做一次内容体检，再决定要不要跑流水线**（2026-09-04 补）
+   先用 WebFetch 拿标题和主题，两件事必须过：
+   - **是不是用户自己的文章** —— 别人的文章做了就是搬运侵权
+   - **是不是敏感/高风险话题** —— 性别对立、地域对立、涉政人物、名人八卦撕逼等
+     → 直接说明风险、告知无法出片，别先跑 capture（截图最贵，跑完再拒是浪费）
+   用户账号定位是期权/金融/AI，搬运这类内容还会砸账号垂类权重
+7. 支持平台：知乎专栏/回答、微信公众号文章（自动识别选择器），其他平台用 `--selector` 手动指定
 7. 想更新技能描述里的预览图：`python scripts/make_preview.py`
 
 ## 已知问题
@@ -196,7 +288,7 @@ $PY $SKILL/scripts/add_border.py --workdir $WORK --preset navy --dash-color '#2E
 - 公众号文章部分被防盗链拦截，正文容器识别不到时用 `--selector "#js_content"` 手动指定
 - capture.py 结尾用 `os._exit()` 规避 playwright greenlet 清理报错，属正常
 
-## 已内置的四个修复（勿删）
+## 已内置的五个修复（勿删）
 
 **1. 加粗失效修复（重要）**
 知乎移动端把 `<b>/<strong>` 的 `font-weight` 设为 **500(Medium)** 而非标准 700。
@@ -243,6 +335,23 @@ te = int((np.abs(g[:6]-255)>45).sum()); be = int((np.abs(g[-6:]-255)>45).sum())
 # te == 0 and be == 0 才算没截断
 ```
 
+**5. 切口劈开整宽大图（2026-09-04 修，重要）**
+reslice 靠「把切口吸附到附近空白段」避免切断文字，但吸附窗口只有 `MAX_SNAP=500`。
+当目标位置附近 500px 内没有空白段（常见于一张几百甚至上千 px 高的整宽大图），
+旧版直接按目标位置下刀 → **大图被劈成两半**，且图上没有空白行，
+clean_slices 无从裁剪 → 相邻两片一张底部、一张顶部各残留半张图。
+
+已改为**两级兜底**（`reslice.py`）：
+1. 放宽到 `MAX_SNAP_FAR=1500` 再找空白段（宁可页面长短不匀，也不劈图）
+2. 仍找不到且目标落在「不可分割块」（整宽连续墨量 ≥ `BLOCK_MIN=150`px）内 → 推到块的边缘
+3. 最后仍整宽有墨 → 打印 `[切口N] 警告`
+
+**症状判断**：验收脚本报 `!!!截断`，且是**相邻两片**同时报错（一片 bottom、一片 top）。
+**日志识别**：reslice 打印 `[切口N] 目标 X 的 500px 内无空白段，放宽到 Y` 表示走了兜底一，
+此时要检查该片的兄弟片会不会变得过长。
+**根治办法**：这类文章**加大片数**（见「切片数怎么定」的大图实例），
+把大图那一段切得更碎，最高页才压得进 1830。
+
 ## 为什么必须用 reslice.py 重新切片
 
 capture.py 按**页面高度**均分，遇到大片空白（未加载图片、大间距模块）就会失衡：
@@ -283,6 +392,18 @@ done
 | 5 | 2379 / 2226 / 1952 / 2195 / 2438 | 1.25x | 最高的 2438 会顶到画布，字被压小 |
 | 6 | 1939 / 1842 / 1632 / 1938 / 1920 / 1919 | 1.19x | 更匀且都在 1830 附近，选它 |
 
+**遇到整宽大图时，均衡度要让位于"最高页别超 1830"**。
+实例（知乎某篇，含一张 7360-8921 共 **1561px 高**的整宽大图，full.png 10059px）：
+
+| 片数 | 各页裁剪后高度 | 跨度 | 判断 |
+|---|---|---|---|
+| 5 | 1916 / 2061 / 1704 / 1291 / **2766** | 2.14x | 最高页 2766，字被压得看不清 |
+| 6 | ~1600 / 1660 / 1640 / 2170 / 1820 / 900 | 2.35x | 大图那片仍偏高 |
+| 7 | 1397 / 1429 / 1323 / 1433 / 1291 / 1801 / 925 | 1.95x | 最高 1801 ≤ 1830，**选它** |
+
+规律：文章里有「不可分割块」（见下）时，**多加片数**反而更容易把最高页压下来，
+因为大图那一片被切成更短的段。别死守 5 片。
+
 ### 内容密度参考
 
 `reslice.py` 打印的「内容行总数 / 原高度」能预判切片难度：
@@ -309,7 +430,7 @@ done
 | "Element is not attached" | 页面结构变化，加 --selector 手动指定正文容器 |
 | ffmpeg 失败 | 看 stderr 最后 3000 字符，多为图片损坏（重跑 capture） |
 | BGM 无声 | 确认 mp3 完整（probe Duration 正常） |
-| 某页文字被切一半 | clean_slices.py 边界检测失效，用上面"验收方法"定位后调 CLUSTER_GAP |
+| 相邻两片的底/顶残留半张图 | 切口落在大图里（见修复 5）。加大片数，或看 reslice 日志是否走了兜底 |
 | 卡片超出画布被裁 | add_border.py 已自动收缩（CARD_PAD=88 + BREATH=40），若仍溢出调 --target-width |
 | 页面长短悬殊 | 用 reslice.py 重新切片，别用 capture.py 的等高分法 |
 | 视频里少了一张配图 | 图片懒加载失败，capture.py 已内置强制加载；仍失败看日志"有图片加载超时" |
